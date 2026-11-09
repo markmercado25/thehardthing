@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1e2637">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="hard thing">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>the hard thing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+    --u: min(calc(100vw / 393), calc((100dvh - var(--sat) - var(--sab)) / 852));
+    --bg1:#1f2739; --bg2:#1b2333;
+    --muted:#a7b0cc;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:var(--bg2);overflow:hidden;overscroll-behavior:none}
+  body{
+    font-family:"Outfit",system-ui,-apple-system,sans-serif;
+    color:var(--white);
+    background:
+      radial-gradient(120% 60% at 50% 0%, #222b3e 0%, transparent 70%),
+      linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+    -webkit-user-select:none;user-select:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:var(--sat) 0 var(--sab)}
+  .frame{position:relative;width:calc(393*var(--u));height:calc(852*var(--u))}
+  .abs{position:absolute;left:50%;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
+
+  /* header */
+  .title{position:absolute;left:calc(24*var(--u));top:calc(52*var(--u));transform:translateY(-50%);
+    font-size:calc(33*var(--u));font-weight:700;letter-spacing:.005em;line-height:1}
+  .subtitle{position:absolute;left:calc(24*var(--u));top:calc(83*var(--u));transform:translateY(-50%);
+    font-size:calc(17*var(--u));font-weight:400;color:var(--muted);line-height:1}
+  .gear{position:absolute;right:calc(21*var(--u));top:calc(51*var(--u));transform:translateY(-50%);
+    width:calc(30*var(--u));height:calc(30*var(--u));display:grid;place-items:center;
+    background:none;border:0;color:#fff;cursor:pointer}
+  .gear svg{width:calc(23*var(--u));height:calc(23*var(--u))}
+
+  .today{top:calc(132*var(--u));font-size:calc(16*var(--u));font-weight:500;letter-spacing:.14em;color:var(--muted)}
+  .count{will-change:transform;top:calc(204*var(--u));font-size:calc(124*var(--u));font-weight:800;line-height:1;
+    text-shadow:0 calc(6*var(--u)) calc(18*var(--u)) rgba(0,0,0,.25)}
+  .count.bump{animation:bump .42s cubic-bezier(.2,1.6,.4,1)}
+  .count.dip{animation:dip .32s ease}
+  @keyframes bump{0%{transform:translate(-50%,-50%) scale(1)}35%{transform:translate(-50%,-50%) scale(1.14)}100%{transform:translate(-50%,-50%) scale(1)}}
+  @keyframes dip{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(.9)}100%{transform:translate(-50%,-50%) scale(1)}}
+  .done{top:calc(265*var(--u));font-size:calc(21*var(--u));font-weight:500;color:var(--muted)}
+
+  /* the orb button */
+  .orbwrap{position:absolute;left:50%;top:calc(331*var(--u));width:calc(60*var(--u));height:calc(60*var(--u));transform:translate(-50%,-50%)}
+  .orb{position:absolute;inset:0;border:0;border-radius:50%;cursor:pointer;padding:0;
+    background:linear-gradient(135deg,#25d4ff 0%,#159bff 45%,#0a49f5 100%);
+    box-shadow:0 calc(9*var(--u)) calc(20*var(--u)) rgba(0,0,0,.5),0 0 calc(16*var(--u)) rgba(30,130,255,.22);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1);touch-action:manipulation;outline:none;will-change:transform}
+  .orb:focus-visible{box-shadow:0 0 0 3px rgba(255,255,255,.5)}
+  .core,.fill{position:absolute;inset:calc(6.5*var(--u));border-radius:50%;pointer-events:none}
+  .core{background:radial-gradient(circle at 34% 28%,#ffffff 0%,#f3f4f7 30%,#d9dce3 70%,#bfc4cf 100%);
+    box-shadow:inset 0 calc(-2*var(--u)) calc(4*var(--u)) rgba(0,0,0,.12),0 calc(1*var(--u)) calc(2*var(--u)) rgba(0,0,0,.25);
+    transition:box-shadow .12s}
+  .fill{will-change:transform,opacity;background:radial-gradient(circle at 36% 30%,#9cecff 0%,#3fb8ff 35%,#1673ff 75%,#0b48f0 100%);
+    transform:scale(0);opacity:0}
+  .orb.pressed{transform:scale(.88)}
+  .orb.pressed .core{box-shadow:inset 0 calc(3*var(--u)) calc(6*var(--u)) rgba(0,0,0,.22)}
+  .orb.pop{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+  .orb.pop .fill{animation:fill 1.05s ease forwards}
+  @keyframes pop{0%{transform:scale(.82)}40%{transform:scale(1.2)}70%{transform:scale(.97)}100%{transform:scale(1)}}
+  @keyframes fill{0%{transform:scale(0);opacity:1}25%{transform:scale(1.08);opacity:1}35%{transform:scale(1);opacity:1}70%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+
+  .ringburst{position:absolute;left:50%;top:50%;width:calc(60*var(--u));height:calc(60*var(--u));
+    margin:calc(-30*var(--u)) 0 0 calc(-30*var(--u));border-radius:50%;pointer-events:none;
+    border:calc(5*var(--u)) solid #3aa0ff;transform:scale(.4);opacity:0;will-change:transform,opacity}
+  .ringburst.go{animation:ring .5s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes ring{0%{transform:scale(.4);opacity:.95}60%{opacity:.6}100%{transform:scale(1.75);opacity:0}}
+  .dot{position:absolute;left:50%;top:50%;border-radius:50%;pointer-events:none;will-change:transform,opacity}
+
+  .label{top:calc(393*var(--u));font-size:calc(20.5*var(--u));font-weight:600}
+  .hint{top:calc(419*var(--u));font-size:calc(15.5*var(--u));font-weight:400;color:var(--muted)}
+  .undo{top:calc(458*var(--u));display:flex;align-items:center;gap:calc(12*var(--u));
+    background:none;border:0;color:var(--muted);font:inherit;font-size:calc(15.5*var(--u));font-weight:400;
+    cursor:pointer;padding:calc(8*var(--u)) calc(12*var(--u));border-radius:calc(12*var(--u));touch-action:manipulation;transition:opacity .15s}
+  .actions{top:calc(458*var(--u));display:flex;gap:calc(14*var(--u));align-items:center}
+  .confirm{position:fixed;left:50%;top:50%;width:min(86vw,330px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;
+    background:#252e43;border-radius:22px;padding:24px 20px 18px;text-align:center;z-index:12;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);transition:opacity .2s,transform .25s cubic-bezier(.2,1.3,.4,1)}
+  .confirm.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .confirm h3{font-size:20px;font-weight:700;margin-bottom:8px}
+  .confirm p{font-size:15px;color:var(--muted);line-height:1.4;margin-bottom:20px}
+  .confirm .btns{display:flex;gap:10px}
+  .confirm .btns button{flex:1;padding:13px 0;border-radius:14px;border:0;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+  .confirm .cancel{background:#2f3a52;color:#fff}
+  .confirm .yes{background:#e5484d;color:#fff}
+  .undo svg{width:calc(19*var(--u));height:calc(19*var(--u))}
+  .undo:active{opacity:.55}
+  .undo[disabled]{opacity:.45;cursor:default}
+
+  .card{position:absolute;left:calc(24*var(--u));right:calc(24*var(--u));top:calc(641*var(--u));height:calc(100*var(--u));
+    border-radius:calc(22*var(--u));background:linear-gradient(180deg,#242d41 0%,#212a3d 100%);
+    box-shadow:0 calc(12*var(--u)) calc(28*var(--u)) rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.025);
+    display:grid;grid-template-columns:1fr 1px 1fr;align-items:center}
+  .stat{display:flex;flex-direction:column;align-items:center;gap:calc(9*var(--u))}
+  .stat .k{font-size:calc(13*var(--u));font-weight:500;letter-spacing:.15em;color:var(--muted)}
+  .stat .v{font-size:calc(36*var(--u));font-weight:700;line-height:1}
+  .divider{width:1px;height:calc(46*var(--u));background:rgba(255,255,255,.13)}
+  .goal{position:absolute;left:calc(24*var(--u));right:calc(24*var(--u));top:calc(489*var(--u));height:calc(128*var(--u));
+    border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:calc(18*var(--u)) calc(21*var(--u)) 0;
+    border-radius:calc(22*var(--u));background:linear-gradient(180deg,#242d41 0%,#212a3d 100%);
+    box-shadow:0 calc(12*var(--u)) calc(28*var(--u)) rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.025);
+    transition:transform .15s cubic-bezier(.3,.7,.4,1);touch-action:manipulation;outline:none}
+  .goal:active{transform:scale(.98)}
+  .g-k{font-size:calc(13*var(--u));line-height:1;font-weight:500;letter-spacing:.15em;color:var(--muted)}
+  .g-row{display:flex;justify-content:space-between;align-items:center;margin-top:calc(10*var(--u));line-height:1}
+  .g-t{font-size:calc(20*var(--u));font-weight:600;color:#fff}
+  .g-n{position:relative;font-size:calc(18*var(--u));font-weight:500;color:var(--muted)}
+  .g-bar{margin-top:calc(12.5*var(--u));height:calc(11*var(--u));border-radius:99px;background:#303a50;overflow:hidden}
+  .g-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#25d4ff 0%,#159bff 50%,#0a49f5 100%);
+    transition:width .55s cubic-bezier(.25,.9,.3,1)}
+  .g-fill.full{box-shadow:0 0 calc(10*var(--u)) rgba(37,180,255,.55)}
+  .g-sub{margin-top:calc(9*var(--u));font-size:calc(15*var(--u));line-height:1;color:var(--muted)}
+  .crown{position:absolute;left:50%;bottom:100%;margin-bottom:calc(4*var(--u));width:calc(24*var(--u));height:calc(19*var(--u));
+    transform:translateX(-50%) scale(0);transform-origin:50% 90%;opacity:0;pointer-events:none;
+    filter:drop-shadow(0 calc(2*var(--u)) calc(4*var(--u)) rgba(255,190,40,.45))}
+  .crown svg{width:100%;height:100%;display:block}
+  .crown.show{opacity:1;transform:translateX(-50%) scale(1)}
+  .crown.enter{animation:crownIn 1.35s cubic-bezier(.3,.8,.4,1) both}
+  @keyframes crownIn{
+    0%{opacity:0;transform:translateX(-50%) translateY(calc(12*var(--u))) scale(0) rotate(0)}
+    18%{opacity:1;transform:translateX(-50%) translateY(calc(-6*var(--u))) scale(1.55) rotate(-18deg)}
+    30%{transform:translateX(-50%) translateY(calc(-6*var(--u))) scale(1.5) rotate(16deg)}
+    42%{transform:translateX(-50%) translateY(calc(-5*var(--u))) scale(1.45) rotate(-13deg)}
+    54%{transform:translateX(-50%) translateY(calc(-4*var(--u))) scale(1.38) rotate(10deg)}
+    66%{transform:translateX(-50%) translateY(calc(-3*var(--u))) scale(1.28) rotate(-6deg)}
+    78%{transform:translateX(-50%) translateY(calc(-1*var(--u))) scale(1.12) rotate(3deg)}
+    90%{transform:translateX(-50%) scale(.96) rotate(-1deg)}
+    100%{opacity:1;transform:translateX(-50%) scale(1) rotate(0)}}
+  .stepper{display:flex;align-items:center;justify-content:center;gap:28px;margin:8px 0 18px}
+  .stepper button{width:56px;height:56px;border-radius:50%;border:0;background:#2f3a52;color:#fff;font:inherit;font-size:28px;font-weight:500;cursor:pointer;touch-action:manipulation}
+  .stepper button:active{transform:scale(.92)}
+  .stepper button[disabled]{opacity:.35}
+  .stepper .val{min-width:90px;text-align:center;font-size:56px;font-weight:800;line-height:1}
+  .presets{display:flex;gap:10px;justify-content:center}
+  .presets button{flex:1;max-width:76px;padding:10px 0;border-radius:12px;border:0;background:#1b2333;color:var(--muted);font:inherit;font-size:16px;cursor:pointer}
+  .presets button.on{background:#2f3a52;color:#fff}
+  .note{text-align:center;color:var(--muted);font-size:14px;margin-top:16px}
+  .close.primary{background:linear-gradient(135deg,#25d4ff,#0a49f5);color:#fff;font-weight:600}
+  .footer{top:calc(773*var(--u));font-size:calc(15.5*var(--u));font-weight:400;color:var(--muted)}
+
+  canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;transform:translateZ(0)}
+
+  /* settings sheet (only opens from the gear) */
+  .scrim{position:fixed;inset:0;background:rgba(5,8,15,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:50%;bottom:0;width:min(100%,520px);transform:translate(-50%,105%);
+    background:#232c40;border-radius:24px 24px 0 0;padding:14px 22px calc(26px + env(safe-area-inset-bottom));
+    transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:11;box-shadow:0 -10px 40px rgba(0,0,0,.4)}
+  .sheet.open{transform:translate(-50%,0)}
+  .grab{width:38px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);margin:0 auto 16px}
+  .sheet h2{font-size:20px;font-weight:700;margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:16px}
+  .row span{color:#fff}
+  .seg{display:flex;background:#1b2333;border-radius:10px;padding:3px}
+  .seg button{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;padding:6px 12px;border-radius:8px;cursor:pointer}
+  .seg button.on{background:#2f3a52;color:#fff}
+  .tog{width:50px;height:30px;border-radius:15px;background:#3a4560;border:0;position:relative;cursor:pointer;transition:background .2s}
+  .tog::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+  .tog.on{background:linear-gradient(135deg,#25d4ff,#0a49f5)}
+  .tog.on::after{transform:translateX(20px)}
+  .danger{width:100%;margin-top:16px;padding:14px;border-radius:14px;border:0;background:#2b3448;color:#ff8a8a;font:inherit;font-size:16px;font-weight:500;cursor:pointer}
+  .danger.armed{background:#5a2730;color:#fff}
+  .close{width:100%;margin-top:10px;padding:14px;border-radius:14px;border:0;background:none;color:var(--muted);font:inherit;font-size:16px;cursor:pointer}
+  .haptic-src{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="frame" id="frame">
+    <div class="title">the hard thing</div>
+    <div class="subtitle">Show up for yourself.</div>
+    <button class="gear" id="gear" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+      </svg>
+    </button>
+
+    <div class="abs today">TODAY</div>
+    <div class="abs count" id="count">0</div>
+    <div class="abs done">hard things done</div>
+
+    <div class="orbwrap" id="orbwrap">
+      <div class="ringburst" id="ringburst"></div>
+      <button class="orb" id="orb" aria-label="I did the hard thing">
+        <span class="core"></span><span class="fill"></span>
+      </button>
+    </div>
+
+    <div class="abs label">I did the hard thing</div>
+    <div class="abs hint">Tap to count it.</div>
+    <div class="abs actions">
+    <button class="undo" id="undo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>
+      </svg>
+      Undo
+    </button>
+    <button class="undo" id="clear">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16"/><path d="M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7"/><path d="M6.5 7l.8 12a1.6 1.6 0 0 0 1.6 1.5h6.2a1.6 1.6 0 0 0 1.6-1.5l.8-12"/>
+      </svg>
+      Clear
+    </button>
+    </div>
+
+    <button class="goal" id="goal" aria-label="Daily goal, tap to change">
+      <div class="g-k">DAILY GOAL</div>
+      <div class="g-row">
+        <div class="g-t" id="goalText">Do 1 hard thing</div>
+        <div class="g-n"><span class="crown" id="crown" aria-hidden="true"><svg viewBox="0 0 24 19">
+          <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f5a623"/></linearGradient></defs>
+          <path d="M2.2 6.2 7.4 10.4 12 2.6l4.6 7.8 5.2-4.2-1.9 9.6H4.1Z" fill="url(#cg)" stroke="#e8951a" stroke-width=".8" stroke-linejoin="round"/>
+          <rect x="4" y="15.6" width="16" height="2.6" rx="1.1" fill="url(#cg)" stroke="#e8951a" stroke-width=".7"/>
+          <circle cx="2.2" cy="5.6" r="1.6" fill="#ffe27a"/><circle cx="12" cy="2" r="1.7" fill="#ffe27a"/><circle cx="21.8" cy="5.6" r="1.6" fill="#ffe27a"/>
+          <circle cx="12" cy="11.6" r="1.3" fill="#fff6d0"/></svg></span><span id="goalNum">0 / 1</span></div>
+      </div>
+      <div class="g-bar"><div class="g-fill" id="goalFill"></div></div>
+      <div class="g-sub" id="goalSub">1 more to go</div>
+    </button>
+
+    <div class="card">
+      <div class="stat"><div class="k">THIS WEEK</div><div class="v" id="week">0</div></div>
+      <div class="divider"></div>
+      <div class="stat"><div class="k">ALL TIME</div><div class="v" id="all">0</div></div>
+    </div>
+
+    <div class="abs footer">hard now easy later, or easy now hard later</div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Settings">
+  <div class="grab"></div>
+  <h2>Settings</h2>
+  <div class="row"><span>Click sound</span><button class="tog" id="tSound" aria-label="Click sound"></button></div>
+  <div class="row"><span>Haptics</span><button class="tog" id="tHaptic" aria-label="Haptics"></button></div>
+  <div class="row"><span>Week starts on</span>
+    <div class="seg" id="segWeek"><button data-v="0">Sun</button><button data-v="1">Mon</button></div>
+  </div>
+  <button class="danger" id="resetAll">Reset all counts</button>
+  <button class="close" id="closeSheet">Done</button>
+</div>
+
+<div class="sheet" id="goalSheet" role="dialog" aria-label="Daily goal">
+  <div class="grab"></div>
+  <h2>Daily goal</h2>
+  <div class="stepper"><button id="gMinus" aria-label="Lower goal">−</button><div class="val" id="gVal">1</div><button id="gPlus" aria-label="Raise goal">+</button></div>
+  <div class="presets" id="gPresets"><button data-v="1">1</button><button data-v="3">3</button><button data-v="5">5</button><button data-v="10">10</button></div>
+  <p class="note">Today only. Goes back to 1 tomorrow.</p>
+  <button class="close primary" id="gDone">Done</button>
+</div>
+
+<div class="confirm" id="confirmClear" role="alertdialog" aria-label="Clear today">
+  <h3>Are you sure?</h3>
+  <p>This clears today's count back to 0.</p>
+  <div class="btns"><button class="cancel" id="clearNo">Cancel</button><button class="yes" id="clearYes">Clear</button></div>
+</div>
+
+<label class="haptic-src" id="hapticLabel"><input type="checkbox" switch id="hapticInput"></label>
+
+<script>
+(() => {
+  const LS_KEY = "the-hard-thing-v1";
+  const $ = id => document.getElementById(id);
+
+  // ---------- state ----------
+  const blank = () => ({ days:{}, goals:{}, prefs:{ sound:true, haptics:true, weekStart:0 }, updatedAt:0 });
+  let state = blank();
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(blank(), JSON.parse(raw)); } catch(e){}
+  state.prefs = Object.assign(blank().prefs, state.prefs || {});
+  state.goals = state.goals || {};
+
+  const pad = n => String(n).padStart(2,"0");
+  const keyOf = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  let todayKey = keyOf(new Date());
+
+  const todayCount = () => state.days[todayKey] || 0;
+  function weekCount(){
+    const now = new Date(); now.setHours(12,0,0,0);
+    const back = (now.getDay() - state.prefs.weekStart + 7) % 7;
+    let sum = 0;
+    for (let i=0;i<=back;i++){ const d = new Date(now); d.setDate(now.getDate()-i); sum += state.days[keyOf(d)] || 0; }
+    return sum;
+  }
+  const goalToday = () => Math.max(1, +state.goals[todayKey] || 1);
+  let prevDone = null;
+  function renderGoal(){
+    const c = todayCount(), g = goalToday(), done = c >= g;
+    $("goalText").textContent = "Do " + g + " hard thing" + (g === 1 ? "" : "s");
+    $("goalNum").textContent = c + " / " + g;
+    const fill = $("goalFill");
+    fill.style.width = (Math.min(1, c / g) * 100) + "%";
+    fill.classList.toggle("full", done);
+    $("goalSub").textContent = done ? (c > g ? "Goal complete · " + (c - g) + " extra" : "Goal complete") : (g - c) + " more to go";
+    const crown = $("crown");
+    if (done) {
+      if (prevDone === false) { crown.classList.remove("enter"); void crown.offsetWidth; crown.classList.add("enter"); }
+      crown.classList.add("show");
+    } else crown.classList.remove("show", "enter");
+    prevDone = done;
+  }
+  const allCount = () => Object.values(state.days).reduce((a,b)=>a+(+b||0),0);
+
+  function render(){
+    $("count").textContent = todayCount();
+    $("week").textContent = weekCount();
+    $("all").textContent = allCount();
+    $("undo").disabled = todayCount() === 0;
+    $("clear").disabled = todayCount() === 0;
+    renderGoal();
+    $("tSound").classList.toggle("on", !!state.prefs.sound);
+    $("tHaptic").classList.toggle("on", !!state.prefs.haptics);
+    document.querySelectorAll("#segWeek button").forEach(b => b.classList.toggle("on", +b.dataset.v === state.prefs.weekStart));
+  }
+
+  function commit(){
+    state.updatedAt = Date.now();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+    queueWrite();
+  }
+
+  // ---------- cloud sync (per-person, private) ----------
+  let ref = null, writeTimer = null, chain = Promise.resolve(), lastWritten = 0;
+  function queueWrite(){
+    if (!ref) return;
+    clearTimeout(writeTimer);
+    writeTimer = setTimeout(flush, 700);
+  }
+  function flush(){
+    if (!ref || state.updatedAt === lastWritten) return;
+    const body = JSON.parse(JSON.stringify(state));
+    lastWritten = body.updatedAt;
+    chain = chain.then(() => ref.set(body)).catch(() => { lastWritten = 0; });
+  }
+  (async () => {
+    try {
+      if (!window.claude || !window.claude.use) return;
+      const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+      if (!db || !user) return;
+      const uid = await user.id();
+      if (!uid) return;
+      ref = db.doc("data/users/" + uid + "/tally");
+      ref.onSnapshot(snap => {
+        if (snap.exists) {
+          const r = snap.data() || {};
+          const rt = +r.updatedAt || 0;
+          if (rt > state.updatedAt) {
+            state = Object.assign(blank(), JSON.parse(JSON.stringify(r)));
+            state.prefs = Object.assign(blank().prefs, state.prefs || {});
+            state.goals = state.goals || {};
+            lastWritten = rt;
+            try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+            render();
+          } else if (rt < state.updatedAt) { queueWrite(); }
+        } else if (state.updatedAt > 0) { queueWrite(); }
+      }, () => { ref = null; });
+    } catch(e) {}
+  })();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") { clearTimeout(writeTimer); flush(); }
+    else checkDay();
+  });
+
+  // ---------- new day ----------
+  function checkDay(){
+    const k = keyOf(new Date());
+    if (k !== todayKey){ todayKey = k; render(); }
+  }
+  setInterval(checkDay, 20000);
+
+  // ---------- feedback: haptic + click ----------
+  let actx = null;
+  function haptic(){
+    if (!state.prefs.haptics) return;
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch(e){}
+    try { $("hapticLabel").click(); } catch(e){}   // iOS Safari switch haptic
+  }
+  function clickSound(strong){
+    if (!state.prefs.sound) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      const t = actx.currentTime;
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(strong ? 1400 : 900, t);
+      o.frequency.exponentialRampToValueAtTime(strong ? 520 : 380, t + 0.05);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(strong ? 0.22 : 0.12, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + 0.08);
+    } catch(e){}
+  }
+
+  // ---------- orb animation ----------
+  const orb = $("orb"), wrap = $("orbwrap"), ring = $("ringburst"), countEl = $("count");
+  const COLORS = ["#22d3ff","#3b82f6","#8b5cf6","#f472b6","#2dd4bf","#facc15","#60a5fa"];
+  const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
+  function particles(){
+    const u = wrap.offsetWidth / 60;
+    const N = 7;
+    const rot = Math.random() * 360;
+    for (let i=0;i<N;i++){
+      const a = (rot + i * 360 / N) * Math.PI/180;
+      for (let j=0;j<2;j++){
+        const d = document.createElement("span");
+        d.className = "dot";
+        const size = (j ? 5.5 : 7.5) * u;
+        const off = j ? 0.32 : 0;
+        const ang = a + off;
+        const r0 = 26*u, r1 = (j ? 52 : 60)*u;
+        d.style.width = d.style.height = size + "px";
+        d.style.marginLeft = d.style.marginTop = (-size/2) + "px";
+        d.style.background = COLORS[(i*2+j) % COLORS.length];
+        wrap.appendChild(d);
+        const x0 = Math.cos(ang)*r0, y0 = Math.sin(ang)*r0, x1 = Math.cos(ang)*r1, y1 = Math.sin(ang)*r1;
+        const anim = d.animate([
+          { transform:`translate(${x0}px,${y0}px) scale(0)`, opacity:1 },
+          { transform:`translate(${(x0+x1)/2}px,${(y0+y1)/2}px) scale(1.15)`, opacity:1, offset:.35 },
+          { transform:`translate(${x1}px,${y1}px) scale(0)`, opacity:.9 }
+        ], { duration: 700, delay: 90, easing:"cubic-bezier(.15,.7,.3,1)", fill:"both" });
+        anim.onfinish = () => d.remove();
+      }
+    }
+  }
+
+  // ---------- confetti (time-based, GPU-friendly) ----------
+  const cv = $("confetti");
+  const cx = cv.getContext("2d", { alpha: true, desynchronized: true });
+  let pieces = [], running = false, W = 0, H = 0, DPR = 1, last = 0;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
+  }
+  resize(); window.addEventListener("resize", resize);
+  const CCOL = ["#22d3ff","#3b82f6","#8b5cf6","#f472b6","#facc15","#34d399","#ffffff","#fb923c"];
+  function confetti(){
+    const n = Math.round(Math.min(110, W/3.6));
+    for (let i=0;i<n;i++){
+      pieces.push({
+        x: Math.random()*W, y: -30 - Math.random()*H*0.45,
+        w: 6 + Math.random()*5, h: 9 + Math.random()*7,
+        vx: (Math.random()-.5)*60,            // px/s
+        vy: 140 + Math.random()*120,          // px/s
+        rot: Math.random()*Math.PI*2, vr: (Math.random()-.5)*7,      // rad/s
+        tilt: Math.random()*Math.PI*2, vt: 5 + Math.random()*6,      // rad/s
+        sway: Math.random()*Math.PI*2, vs: 1.6 + Math.random()*1.4,  // rad/s
+        amp: 25 + Math.random()*30,           // px/s sway speed
+        c: (Math.random()*CCOL.length)|0
+      });
+    }
+    pieces.sort((p,q) => p.c - q.c);          // fewer fillStyle switches
+    if (!running){ running = true; last = 0; requestAnimationFrame(tick); }
+  }
+  function tick(t){
+    let dt = last ? (t - last) / 1000 : 1/60;
+    if (dt > 0.05) dt = 0.05;                 // after a hiccup, don't teleport
+    last = t;
+    cx.setTransform(1,0,0,1,0,0);
+    cx.clearRect(0,0,cv.width,cv.height);
+    let col = -1, alive = 0;
+    for (let i=0;i<pieces.length;i++){
+      const p = pieces[i];
+      p.sway += p.vs*dt; p.tilt += p.vt*dt; p.rot += p.vr*dt;
+      p.vy += 60*dt; if (p.vy > 330) p.vy = 330;
+      p.x += (p.vx + Math.sin(p.sway)*p.amp)*dt;
+      p.y += p.vy*dt;
+      if (p.y > H + 30) continue;
+      pieces[alive++] = p;
+      if (p.y < -20) continue;
+      if (p.c !== col){ col = p.c; cx.fillStyle = CCOL[col]; }
+      const c = Math.cos(p.rot)*DPR, s = Math.sin(p.rot)*DPR;
+      let sy = Math.cos(p.tilt); if (sy > -0.08 && sy < 0.08) sy = sy < 0 ? -0.08 : 0.08;
+      cx.globalAlpha = p.y > H - 80 ? Math.max(0, (H + 30 - p.y) / 110) : 1;
+      cx.setTransform(c, s, -s*sy, c*sy, p.x*DPR, p.y*DPR);
+      cx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    }
+    pieces.length = alive;
+    cx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(tick);
+    else { running = false; last = 0; cx.setTransform(1,0,0,1,0,0); cx.clearRect(0,0,cv.width,cv.height); }
+  }
+
+  // ---------- interactions ----------
+  const press = () => { orb.classList.add("pressed"); haptic(); clickSound(false); };
+  const release = () => orb.classList.remove("pressed");
+  orb.addEventListener("pointerdown", e => { if (e.button === 0 || e.pointerType !== "mouse") press(); });
+  ["pointerup","pointercancel","pointerleave"].forEach(ev => orb.addEventListener(ev, release));
+  orb.addEventListener("contextmenu", e => e.preventDefault());
+
+  orb.addEventListener("click", () => {
+    release();
+    checkDay();
+    state.days[todayKey] = todayCount() + 1;
+    commit(); render();
+    clickSound(true);
+    restart(orb, "pop");
+    restart(ring, "go");
+    particles();
+    restart(countEl, "bump");
+    confetti();
+  });
+
+  $("undo").addEventListener("click", () => {
+    checkDay();
+    const c = todayCount();
+    if (c <= 0) return;
+    if (c - 1 === 0) delete state.days[todayKey]; else state.days[todayKey] = c - 1;
+    commit(); render();
+    restart(countEl, "dip");
+  });
+
+  // daily goal editor
+  const scrim = $("scrim");
+  const gSheet = $("goalSheet");
+  function syncGoalSheet(){
+    const g = goalToday();
+    $("gVal").textContent = g;
+    $("gMinus").disabled = g <= 1;
+    document.querySelectorAll("#gPresets button").forEach(b => b.classList.toggle("on", +b.dataset.v === g));
+  }
+  function setGoal(g){
+    checkDay();
+    g = Math.max(1, Math.min(999, g|0));
+    if (g === 1) delete state.goals[todayKey]; else state.goals[todayKey] = g;
+    commit(); render(); syncGoalSheet();
+  }
+  $("goal").addEventListener("click", () => { checkDay(); syncGoalSheet(); gSheet.classList.add("open"); scrim.classList.add("open"); });
+  $("gMinus").addEventListener("click", () => setGoal(goalToday() - 1));
+  $("gPlus").addEventListener("click", () => setGoal(goalToday() + 1));
+  document.querySelectorAll("#gPresets button").forEach(b => b.addEventListener("click", () => setGoal(+b.dataset.v)));
+  const closeGoal = () => { gSheet.classList.remove("open"); scrim.classList.remove("open"); };
+  $("gDone").addEventListener("click", closeGoal);
+
+  // settings
+  const sheet = $("sheet"), resetBtn = $("resetAll");
+  let armTimer = null;
+  const openSheet = () => { sheet.classList.add("open"); scrim.classList.add("open"); };
+  const closeSheet = () => { sheet.classList.remove("open"); scrim.classList.remove("open"); disarm(); };
+  const disarm = () => { clearTimeout(armTimer); resetBtn.classList.remove("armed"); resetBtn.textContent = "Reset all counts"; };
+  $("gear").addEventListener("click", openSheet);
+  scrim.addEventListener("click", () => { closeSheet(); closeGoal(); closeConfirm(); });
+  const conf = $("confirmClear");
+  const closeConfirm = () => { conf.classList.remove("open"); scrim.classList.remove("open"); };
+  $("clear").addEventListener("click", () => { if (todayCount() === 0) return; conf.classList.add("open"); scrim.classList.add("open"); });
+  $("clearNo").addEventListener("click", closeConfirm);
+  $("clearYes").addEventListener("click", () => {
+    checkDay();
+    delete state.days[todayKey];
+    commit(); render(); closeConfirm();
+    restart(countEl, "dip");
+  });
+  $("closeSheet").addEventListener("click", closeSheet);
+  $("tSound").addEventListener("click", () => { state.prefs.sound = !state.prefs.sound; commit(); render(); });
+  $("tHaptic").addEventListener("click", () => { state.prefs.haptics = !state.prefs.haptics; commit(); render(); if (state.prefs.haptics) haptic(); });
+  document.querySelectorAll("#segWeek button").forEach(b => b.addEventListener("click", () => { state.prefs.weekStart = +b.dataset.v; commit(); render(); }));
+  resetBtn.addEventListener("click", () => {
+    if (!resetBtn.classList.contains("armed")) {
+      resetBtn.classList.add("armed"); resetBtn.textContent = "Tap again to reset everything";
+      armTimer = setTimeout(disarm, 3500); return;
+    }
+    state.days = {}; state.goals = {}; commit(); render(); closeSheet();
+  });
+
+  render();
+})();
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+</script>
+</body>
+</html>
