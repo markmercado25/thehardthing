@@ -94,6 +94,10 @@
     background:none;border:0;color:var(--muted);font:inherit;font-size:calc(15.5*var(--u));font-weight:400;
     cursor:pointer;padding:calc(8*var(--u)) calc(12*var(--u));border-radius:calc(12*var(--u));touch-action:manipulation;transition:opacity .15s}
   .actions{top:calc(458*var(--u));display:flex;gap:calc(14*var(--u));align-items:center}
+  .undo[hidden]{display:none}
+  .undo.totoday{color:#38b6ff;font-weight:500;gap:calc(8*var(--u));animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  .p2 .actions{gap:calc(4*var(--u))}
   .confirm{position:fixed;left:50%;top:50%;width:min(86vw,330px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;
     background:#252e43;border-radius:22px;padding:24px 20px 18px;text-align:center;z-index:12;
     box-shadow:0 20px 50px rgba(0,0,0,.5);transition:opacity .2s,transform .25s cubic-bezier(.2,1.3,.4,1)}
@@ -130,6 +134,13 @@
   .g-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#25d4ff 0%,#159bff 50%,#0a49f5 100%);
     transition:width .55s cubic-bezier(.25,.9,.3,1)}
   .g-fill.full{box-shadow:0 0 calc(10*var(--u)) rgba(37,180,255,.55)}
+  .goal{border:1px solid transparent;transition:transform .15s cubic-bezier(.3,.7,.4,1),box-shadow .6s,background .6s,border-color .6s}
+  .goal.gdone{background:linear-gradient(180deg,#2c2452 0%,#211c40 100%);border-color:rgba(196,140,255,.55);
+    box-shadow:0 0 calc(34*var(--u)) rgba(168,85,247,.45),0 calc(12*var(--u)) calc(28*var(--u)) rgba(0,0,0,.32)}
+  .goal.gdone .g-bar{background:#3a2f63}
+  .goal.gdone .g-fill{background:linear-gradient(90deg,#e9d5ff 0%,#c084fc 45%,#9333ea 100%);animation:purpleGlow 1.8s ease-in-out infinite}
+  @keyframes purpleGlow{0%,100%{box-shadow:0 0 calc(6*var(--u)) rgba(192,132,252,.6),0 0 calc(12*var(--u)) rgba(168,85,247,.35)}
+    50%{box-shadow:0 0 calc(12*var(--u)) rgba(216,180,254,.95),0 0 calc(26*var(--u)) rgba(168,85,247,.7)}}
   .g-sub{margin-top:calc(9*var(--u));font-size:calc(15*var(--u));line-height:1;color:var(--muted)}
   .crown{position:absolute;left:50%;bottom:100%;margin-bottom:calc(4*var(--u));width:calc(24*var(--u));height:calc(19*var(--u));
     transform:translateX(-50%) scale(0);transform-origin:50% 90%;opacity:0;pointer-events:none;
@@ -196,7 +207,7 @@
   .streaks .k{font-size:calc(10.5*var(--u));letter-spacing:.08em;white-space:nowrap}
   .streaks .v{font-size:calc(27*var(--u));white-space:nowrap}
   .streaks .divider{height:calc(42*var(--u))}
-  .p2foot{margin-top:calc(18*var(--u));text-align:center;font-size:calc(14.5*var(--u));color:var(--muted);white-space:nowrap}
+  .p2foot{margin-top:calc(16*var(--u));text-align:center;font-size:calc(14*var(--u));line-height:1.35;color:var(--muted);text-wrap:balance}
 
   /* ----- page 0: affirmations & quotes (notes) ----- */
   .notes .nscroll{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
@@ -237,8 +248,7 @@
   .nsec:first-child{margin-top:16px}
   .nsec svg{width:14px;height:14px}
   .nsec + .nlist{margin-top:0}
-  .streaks{cursor:pointer;transition:transform .15s cubic-bezier(.3,.7,.4,1)}
-  .streaks:active{transform:scale(.98)}
+
   .nrow .h{font-size:17.5px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nrow .s{font-size:15px;color:var(--muted);line-height:1.3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nrow .chev{flex:none;width:30px;display:grid;place-items:center;align-self:stretch;color:#9aa3c0}
@@ -561,6 +571,10 @@
       </svg>
       Clear
     </button>
+    <button class="undo totoday" id="pToToday" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
+      Move to today
+    </button>
     </div>
 
     <div class="p2col">
@@ -574,14 +588,14 @@
         <div class="grid" id="calGrid"></div>
         </div>
       </div>
-      <div class="pcard streaks" id="stCard" role="button" aria-label="Streak type, tap to change">
+      <div class="pcard streaks" id="stCard">
         <div class="stat"><div class="k">CURRENT STREAK</div><div class="v" id="stCur">0 days</div></div>
         <div class="divider"></div>
         <div class="stat"><div class="k">BEST STREAK</div><div class="v" id="stBest">0 days</div></div>
         <div class="divider"></div>
         <div class="stat"><div class="k">THIS WEEK</div><div class="v" id="stWeek">0 / 7</div></div>
       </div>
-      <div class="p2foot">Consistency builds audience, trust, and real growth.</div>
+      <div class="p2foot">Self belief with consistency equals guaranteed success.</div>
     </div>
   </div>
 </div>
@@ -611,16 +625,6 @@
   <div class="presets" id="gPresets"><button data-v="1">1</button><button data-v="3">3</button><button data-v="5">5</button><button data-v="10">10</button></div>
   <p class="note">Today only. Goes back to 1 tomorrow.</p>
   <button class="close primary" id="gDone">Done</button>
-</div>
-
-<div class="sheet" id="streakSheet" role="dialog" aria-label="Streak type">
-  <div class="grab"></div>
-  <h2>Count streaks by</h2>
-  <div class="presets" id="stPresets"><button data-v="day">Daily</button><button data-v="week">Weekly</button><button data-v="month">Monthly</button><button data-v="year">Yearly</button></div>
-  <p class="note">Your streak grows each day, week, month, or year in a row that you post at least once.</p>
-  <div class="row"><span>Weekly goal</span><div class="mini"><button id="wgMinus" aria-label="Fewer days">−</button><b id="wgVal">7</b><button id="wgPlus" aria-label="More days">+</button></div></div>
-  <p class="note" style="margin-top:10px">Days you post per week. Hit it and a crown appears at the end of that week. Post all 7 days and the week turns green.</p>
-  <button class="close primary" id="stDone">Done</button>
 </div>
 
 <div class="confirm" id="confirmClear" role="alertdialog" aria-label="Clear today">
@@ -701,6 +705,7 @@ window.startApp = (USER) => {
     const fill = $("goalFill");
     fill.style.width = (Math.min(1, c / g) * 100) + "%";
     fill.classList.toggle("full", done);
+    $("goal").classList.toggle("gdone", done);
     $("goalSub").textContent = done ? (c > g ? "Goal complete · " + (c - g) + " extra" : "Goal complete") : (g - c) + " more to go";
     const crown = $("crown");
     if (done) {
@@ -730,7 +735,7 @@ window.startApp = (USER) => {
     return di;
   }
   function streaks(){
-    const unit = state.prefs.streakUnit || "day";
+    const unit = "day";
     const set = new Set(Object.keys(state.posts).filter(posted).map(k => periodIdx(k, unit)));
     const now = periodIdx(keyOf(new Date()), unit);
     let q = set.has(now) ? now : now - 1, cur = 0;
@@ -744,7 +749,7 @@ window.startApp = (USER) => {
   const kDate = k => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d, 12); };
   const fmtMD = k => kDate(k).toLocaleDateString(undefined, { month:"short", day:"numeric" });
   const fmtLong = k => kDate(k).toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" });
-  const weekGoal = () => Math.max(1, Math.min(7, +state.prefs.weekGoal || 7));
+  const weekGoal = () => 7;
   const CROWN_GOLD = '<svg viewBox="0 0 24 19"><path d="M2.2 6.2 7.4 10.4 12 2.6l4.6 7.8 5.2-4.2-1.9 9.6H4.1Z" fill="url(#gGold)"/><rect x="4" y="15.6" width="16" height="2.6" rx="1.1" fill="url(#gGold)"/><circle cx="2.2" cy="5.6" r="1.6" fill="url(#gGold)"/><circle cx="12" cy="2" r="1.7" fill="url(#gGold)"/><circle cx="21.8" cy="5.6" r="1.6" fill="url(#gGold)"/></svg>';
   const isCurView = () => { const n = new Date(); return viewY === n.getFullYear() && viewM === n.getMonth(); };
   function renderPosts(){
@@ -800,6 +805,7 @@ window.startApp = (USER) => {
     mc.classList.toggle("show", monthDone);
     if (monthDone && animate && !prevCal.done) { mc.classList.remove("pop"); void mc.offsetWidth; mc.classList.add("pop"); }
     if (!monthDone) mc.classList.remove("pop");
+    $("pToToday").hidden = isCurView() && !selKey;
     prevCal = { sig, weeks, done: monthDone };
     popKey = null;
     const st = streaks();
@@ -1167,18 +1173,23 @@ window.startApp = (USER) => {
       requestAnimationFrame(() => requestAnimationFrame(snapBack));
     }, 170);
   }
-  // weekly goal (in the streak sheet)
-  const syncWG = () => { $("wgVal").textContent = weekGoal(); $("wgMinus").disabled = weekGoal() <= 1; $("wgPlus").disabled = weekGoal() >= 7; };
-  $("wgMinus").addEventListener("click", () => { state.prefs.weekGoal = weekGoal() - 1; commit(); render(); syncWG(); });
-  $("wgPlus").addEventListener("click", () => { state.prefs.weekGoal = weekGoal() + 1; commit(); render(); syncWG(); });
-  $("stCard").addEventListener("click", syncWG);
-  const stSheet = $("streakSheet");
-  const syncStreakSheet = () => document.querySelectorAll("#stPresets button").forEach(b => b.classList.toggle("on", b.dataset.v === (state.prefs.streakUnit || "day")));
-  $("stCard").addEventListener("click", () => { syncStreakSheet(); stSheet.classList.add("open"); $("scrim").classList.add("open"); });
-  document.querySelectorAll("#stPresets button").forEach(b => b.addEventListener("click", () => { state.prefs.streakUnit = b.dataset.v; commit(); render(); syncStreakSheet(); }));
-  const closeStreak = () => { stSheet.classList.remove("open"); $("scrim").classList.remove("open"); };
-  $("stDone").addEventListener("click", closeStreak);
-  $("scrim").addEventListener("click", closeStreak);
+  $("pToToday").addEventListener("click", () => {
+    selKey = null;
+    if (isCurView()) { render(); return; }
+    const w = calCard.offsetWidth, n = new Date(), fwd = (viewY * 12 + viewM) < (n.getFullYear() * 12 + n.getMonth());
+    const dir = fwd ? 1 : -1;
+    calIn.style.transition = "transform .17s ease-in, opacity .17s";
+    calIn.style.transform = "translateX(" + (-dir * w * 0.6) + "px)"; calIn.style.opacity = "0";
+    setTimeout(() => {
+      viewY = n.getFullYear(); viewM = n.getMonth();
+      render();
+      calIn.style.transition = "none"; calIn.style.transform = "translateX(" + (dir * w * 0.6) + "px)";
+      requestAnimationFrame(() => requestAnimationFrame(snapBack));
+    }, 170);
+  });
+
+
+
 
   // pager: always open on "the hard thing" (middle page), scrolled to the top
   const pager = $("pager");
@@ -1212,11 +1223,21 @@ window.startApp = (USER) => {
     ["Favorite Quotes", "“Hard now, easy later.”\n“Easy now, hard later.”\n“One hard thing at a time.”"]
   ];
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  function seedNotes(){
-    const t0 = Date.now();
-    state.notes = SEED.map(([title, body], i) => ({ id: "seed" + i, title, body, u: t0 - i * 60000 }));
+  function seedNotes(){                                   // new accounts start with an empty list
+    state.notes = [];
     try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
   }
+  // remove the old starter notes, but only ones that were never edited
+  function dropStarterNotes(){
+    if (!Array.isArray(state.notes)) return false;
+    const before = state.notes.length;
+    state.notes = state.notes.filter(n => {
+      const m = /^seed(\d+)$/.exec(n.id || ""), s0 = m && SEED[+m[1]];
+      return !(s0 && n.title === s0[0] && n.body === s0[1] && !(n.imgs && n.imgs.length));
+    });
+    return state.notes.length !== before;
+  }
+  if (dropStarterNotes()) { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} }
   if (!Array.isArray(state.notes) && !REMOTE) seedNotes();     // signed-in: wait to see what's in the cloud
   const ensureNotes = () => { if (!Array.isArray(state.notes)) state.notes = []; };
 
@@ -1817,7 +1838,8 @@ window.startApp = (USER) => {
       pulling = true;
       try {
         const r = await sbPull();
-        if (r.fresh && !(state.notes || []).length) seedNotes();     // brand-new account: start with the starter notes
+        if (r.fresh && !Array.isArray(state.notes)) seedNotes();
+        if (dropStarterNotes()) commit();
         render();
       } catch(e) {}
       pulling = false;
